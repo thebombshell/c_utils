@@ -58,3 +58,17 @@ int main(int t_argc, char** t_args)
     }
 }
 ```
+### Comment / Doccumentation Convention
+Comments are to be used exclusively in the header files, if they are necassary in the source files, reconsider function purpose and readibility. Doxygen styled doccumentation comments is also to be used, providing a healthy means of generating documentation, as well as human readible inline comments.
+
+```c
+
+/**	Sets t_target to t_a rotated by t_b
+ *	@memberof	vec3
+ *	@param		t_target - the vector to receive the results
+ *	@param		t_a - the vector to be rotated
+ *	@param		t_b - the quaternion to rotate by
+ *	@returns	the address of t_target to allow nesting vector operations
+ */
+float* vec3_rotate(float* t_target, float* t_a, float* t_b);
+```
