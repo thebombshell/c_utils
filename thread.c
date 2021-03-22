@@ -18,7 +18,7 @@ void atomic_final(atomic* t_atomic) {
 	assert(t_atomic);
 }
 
-unsigned long long int atomic_increment(op_atomic t_atomic) {
+unsigned long long int atomic_increment(p_atomic t_atomic) {
 	
 	assert(t_atomic);
 	
@@ -26,7 +26,7 @@ unsigned long long int atomic_increment(op_atomic t_atomic) {
 	return (unsigned long long int)c89atomic_fetch_add_64(&atomic->value, 1);
 }
 
-unsigned long long int atomic_decrement(op_atomic t_atomic) {
+unsigned long long int atomic_decrement(p_atomic t_atomic) {
 	
 	assert(t_atomic);
 	
@@ -42,7 +42,7 @@ void atomic_set(op_atomic t_atomic, unsigned long long int t_value) {
 	c89atomic_store_64(&atomic->value, t_value);
 }
 
-unsigned long long int atomic_get(op_atomic t_atomic) {
+unsigned long long int atomic_get(p_atomic t_atomic) {
 	
 	assert(t_atomic);
 	
