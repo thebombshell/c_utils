@@ -3,25 +3,22 @@
  * data_structures.h
  */
 
-#ifndef SMOL_DATA_STRUCTURES_H
-#define SMOL_DATA_STRUCTURES_H
+#ifndef C_UTIL_DATA_STRUCTURES_H
+#define C_UTIL_DATA_STRUCTURES_H
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "allocator.h"
-
 typedef struct
 {
 	size_t size;
 	void* data;
-	allocator* allocator;
 
 } buffer, *p_buffer;
 
 /* initializes a buffer */
-int buffer_init(buffer* t_buffer, size_t t_size, allocator* allocator);
+int buffer_init(buffer* t_buffer, size_t t_size);
 
 /* resizes a buffer */
 void buffer_resize(buffer* t_buffer, size_t t_size);
