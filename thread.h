@@ -3,6 +3,7 @@
 #define SMOL_THREAD_H
 
 #include "c89atomic.h"
+#include "data_structures.h"
 #include <stdlib.h>
 
 #if defined(_WIN32)
