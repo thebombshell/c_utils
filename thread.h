@@ -16,6 +16,8 @@
 
 #endif
 
+typedef void (*thread_func)(void* t_arg);
+
 typedef struct {
 	
 #if defined(_WIN32)
@@ -31,8 +33,6 @@ typedef struct {
 	thread_func func;
 	void* argument;
 } thread, *p_thread;
-
-typedef void (*thread_func)(void* t_arg);
 
 int thread_init(thread* t_thread, thread_func t_func, void* t_arg);
 
