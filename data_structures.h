@@ -21,7 +21,7 @@ typedef struct
 } buffer, *p_buffer;
 
 /* initializes a buffer */
-void buffer_init(buffer* t_buffer, size_t t_size, allocator* allocator);
+int buffer_init(buffer* t_buffer, size_t t_size, allocator* allocator);
 
 /* resizes a buffer */
 void buffer_resize(buffer* t_buffer, size_t t_size);
@@ -37,16 +37,16 @@ typedef struct
 } vector, *p_vector;
 
 /* initialize a vector */
-void vector_init(vector* t_vector, size_t t_element_size);
+int vector_init(vector* t_vector, size_t t_element_size);
 
 /* find the capcity of a vector */
 unsigned int vector_find_capacity(vector* t_vector);
 
 /* resizes a vector */
-void vector_resize(vector* t_vector, unsigned int t_new_element_count);
+int vector_resize(vector* t_vector, unsigned int t_new_element_count);
 
 /* resizes a vector, only if it needs to grow */
-void vector_grow(vector* t_vector, unsigned int t_new_element_count);
+int vector_grow(vector* t_vector, unsigned int t_new_element_count);
 
 /* finalize a vector */
 void vector_final(vector* t_vector);
@@ -55,7 +55,7 @@ void vector_final(vector* t_vector);
 void* vector_get_index(vector* t_vector, unsigned int t_index);
 
 /* pushes an entry into a vector */
-void vector_push(vector* t_vector, const void* t_data);
+int vector_push(vector* t_vector, const void* t_data);
 
 /* removes an entry at index from a vector */
 void vector_remove(vector* t_vector, unsigned int t_index);
@@ -75,7 +75,7 @@ typedef struct
 } link_list, *p_link_list;
 
 /* initialize a link list */
-void link_list_init(link_list* t_list);
+int link_list_init(link_list* t_list);
 
 /* insert a link in a link list at a location */
 p_link link_list_insert(p_link t_position, void* t_data);
@@ -114,7 +114,7 @@ p_hash_pair hash_pair_alloc(const char* t_key, void* t_data);
 void hash_pair_free(p_hash_pair t_pair);
 
 /* initialize hash list */
-void hash_list_init(hash_list* t_list);
+int hash_list_init(hash_list* t_list);
 
 /* finalize hash list */
 void hash_list_final(hash_list* t_list);
@@ -137,7 +137,7 @@ typedef struct
 } factory, *p_factory;
 
 /* initializes a memory factory of given element size and allocation capacity */
-void factory_init(factory* t_factory, size_t t_block_size, size_t t_alloc_capacity);
+int factory_init(factory* t_factory, size_t t_block_size, size_t t_alloc_capacity);
 
 /* finalizes a memory factory */
 void factory_final(factory* t_factory);
@@ -146,6 +146,6 @@ void factory_final(factory* t_factory);
 void* factory_alloc(factory* t_factory);
 
 /* returns a factory element to the factories list of freed elements */
-void factory_free(factory* t_factory, void* t_memptr);
+int factory_free(factory* t_factory, void* t_memptr);
 
 #endif

@@ -6,20 +6,24 @@
 #include "data.h"
 #include <assert.h>
 
-void buffer_init(buffer* t_buffer, size_t t_size)
+int buffer_init(buffer* t_buffer, size_t t_size)
 {
 	assert(t_buffer && t_size);
 
 	t_buffer->data = malloc(t_size);
 	t_buffer->size = t_size;
+	
+	return t_buffer->data ? 1 : 0;
 }
 
-void buffer_resize(buffer* t_buffer, size_t t_size)
+int buffer_resize(buffer* t_buffer, size_t t_size)
 {
 	assert(t_buffer && t_size);
 
 	t_buffer->data = realloc(t_buffer->data, t_size);
 	t_buffer->size = t_size;
+	
+	return t_buffer->data ? 1 : 0;
 }
 
 void buffer_final(buffer* t_buffer)
@@ -31,13 +35,15 @@ void buffer_final(buffer* t_buffer)
 	t_buffer->size = 0;
 }
 
-void vector_init(vector* t_vector, size_t t_element_size)
+int vector_init(vector* t_vector, size_t t_element_size)
 {
 	assert(t_vector && t_element_size);
 	
-	buffer_init(&t_vector->buffer, t_element_size);
+	int result = buffer_init(&t_vector->buffer, t_element_size);
 	t_vector->element_size = t_element_size;
 	t_vector->element_count = 0;
+	
+	return result;
 }
 
 unsigned int vector_find_capacity(vector* t_vector)
@@ -45,21 +51,26 @@ unsigned int vector_find_capacity(vector* t_vector)
 	return t_vector->buffer.size / t_vector->element_size;
 }
 
-void vector_resize(vector* t_vector, unsigned int t_new_element_count)
+int vector_resize(vector* t_vector, unsigned int t_new_element_count)
 {
 	assert(t_vector && t_new_element_count);
 	
-	buffer_resize(&t_vector->buffer, t_new_element_count * t_vector->element_size);
+	int result = buffer_resize(&t_vector->buffer, t_new_element_count * t_vector->element_size);
+	
+	return result;
 }
 
-void vector_grow(vector* t_vector, unsigned int t_new_element_count)
+int vector_grow(vector* t_vector, unsigned int t_new_element_count)
 {
 	assert(t_vector && t_new_element_count);
 
+	int result = 1;
 	if (vector_find_capacity(t_vector) < t_new_element_count)
 	{
-		vector_resize(t_vector, t_new_element_count);
+		result = vector_resize(t_vector, t_new_element_count);
 	}
+	
+	return result;
 }
 
 void vector_final(vector* t_vector)
@@ -100,13 +111,15 @@ void vector_remove(vector* t_vector, unsigned int t_index)
 	}
 }
 
-void link_list_init(link_list* t_list)
+int link_list_init(link_list* t_list)
 {
 	assert(t_list);
 
 	t_list->end.data = 0;
 	t_list->end.next = &t_list->end;
 	t_list->end.prev = &t_list->end;
+	
+	return 1;
 }
 
 p_link link_list_insert(p_link t_position, void* t_data)
@@ -191,17 +204,19 @@ void hash_pair_free(p_hash_pair t_pair)
 	free(t_pair);
 }
 
-void hash_list_init(hash_list* t_list)
+int hash_list_init(hash_list* t_list)
 {
 	assert(t_list);
 
-	link_list_init(&t_list->pairs);
+	int result = link_list_init(&t_list->pairs);
 	
 	int c = 0;
 	for (; c < 256; ++c)
 	{
 		t_list->buckets[c] = &t_list->pairs.end;
 	}
+	
+	return result;
 }
 
 void hash_list_final(hash_list* t_list)
@@ -309,20 +324,40 @@ void* factory_alloc(factory* t_factory)
 	}
 	output = malloc(t_factory->block_size * t_factory->alloc_capacity);
 	char* chunk = (char*)output;
-	assert(output);
 	
-	link_list_insert(&t_factory->alloc.end, output);
+	if (!output)
+	{
+		return output;
+	}
+	
+	int result = link_list_insert(&t_factory->alloc.end, output);
+	
+	if (!result)
+	{
+		free(output);
+		return 0;
+	}
+	
 	i = 1;
 	for (; i < t_factory->alloc_capacity; ++i)
 	{
-		vector_push(&t_factory->free, chunk + (i * t_factory->block_size));
+		result = vector_push(&t_factory->free, chunk + (i * t_factory->block_size));
+		
+		if (!result)
+		{
+			free(output);
+			return 0;
+		}
 	}
+	
 	return output;
 }
 
-void factory_free(factory* t_factory, void* t_memptr) 
+int factory_free(factory* t_factory, void* t_memptr) 
 {
 	assert(t_factory && t_memptr);
 	
-	vector_push(&t_factory->free, t_memptr);
+	int result = vector_push(&t_factory->free, t_memptr);
+	
+	return result;
 }
