@@ -78,16 +78,14 @@ void thread_join(p_thread t_thread) {
 	
 	assert(t_thread);
 	
-	thread* thread = (thread*)t_thread;
-	WaitForSingleObject(thread->thread, INFINITE);
+	WaitForSingleObject(t_thread->thread, INFINITE);
 }
 
 unsigned int thread_join_timeout(p_thread t_thread, unsigned long long int t_ms) {
 	
 	assert(t_thread);
 	
-	thread* thread = (thread*)t_thread;
-	DWORD result = WaitForSingleObject(thread->thread, (DWORD)t_ms);
+	DWORD result = WaitForSingleObject(t_thread->thread, (DWORD)t_ms);
 	return result == 0 ? 1 : 0;
 }
 
@@ -110,16 +108,14 @@ void mutex_wait(p_mutex t_mutex) {
 	
 	assert(t_mutex);
 	
-	mutex* mutex = (mutex*)t_mutex;
-	WaitForSingleObject(mutex->mutex, INFINITE);
+	WaitForSingleObject(t_mutex->mutex, INFINITE);
 }
 
 unsigned int mutex_wait_timeout(p_mutex t_mutex, unsigned long long int t_ms) {
 	
 	assert(t_mutex);
 	
-	mutex* mutex = (mutex*)t_mutex;
-	DWORD result = WaitForSingleObject(mutex->mutex, (DWORD)t_ms);
+	DWORD result = WaitForSingleObject(t_mutex->mutex, (DWORD)t_ms);
 	return result == 0 ? 1 : 0;
 }
 
@@ -127,8 +123,7 @@ unsigned int mutex_try(p_mutex t_mutex) {
 	
 	assert(t_mutex);
 	
-	mutex* mutex = (mutex*)t_mutex;
-	DWORD result = WaitForSingleObject(mutex->mutex, 0);
+	DWORD result = WaitForSingleObject(t_mutex->mutex, 0);
 	return result == 0 ? 1 : 0;
 }
 
@@ -136,8 +131,7 @@ void mutex_release(p_mutex t_mutex) {
 	
 	assert(t_mutex);
 	
-	mutex* mutex = (mutex*)t_mutex;
-	ReleaseMutex(mutex->mutex);
+	ReleaseMutex(t_mutex->mutex);
 }
 
 int semaphore_init(semaphore* t_semaphore, unsigned long long int t_value, unsigned long long int t_limit) {
@@ -159,8 +153,7 @@ void semahpore_wait(p_semaphore t_semaphore) {
 	
 	assert(t_semaphore);
 	
-	semaphore* semaphore = (semaphore*)t_semaphore;
-	WaitForSingleObject(semaphore->semaphore, INFINITE);
+	WaitForSingleObject(t_semaphore->semaphore, INFINITE);
 }
 
 
@@ -168,8 +161,7 @@ unsigned int semahpore_wait_timeout(p_semaphore t_semaphore, unsigned long long 
 	
 	assert(t_semaphore);
 	
-	semaphore* semaphore = (semaphore*)t_semaphore;
-	DWORD result = WaitForSingleObject(semaphore->semaphore, (DWORD)t_ms);
+	DWORD result = WaitForSingleObject(t_semaphore->semaphore, (DWORD)t_ms);
 	return result == 0 ? 1 : 0;
 }
 
@@ -177,8 +169,7 @@ unsigned int semahpore_try(p_semaphore t_semaphore) {
 	
 	assert(t_semaphore);
 	
-	semaphore* semaphore = (semaphore*)t_semaphore;
-	DWORD result = WaitForSingleObject(semaphore->semaphore, 0);
+	DWORD result = WaitForSingleObject(t_semaphore->semaphore, 0);
 	return result == 0 ? 1 : 0;
 }
 
@@ -186,8 +177,7 @@ void semaphore_signal(p_semaphore t_semaphore, unsigned long long int t_value) {
 	
 	assert(t_semaphore);
 	
-	semaphore* semaphore = (semaphore*)t_semaphore;
-	ReleaseSemaphore(semaphore->semaphore, t_value, 0);
+	ReleaseSemaphore(t_semaphore->semaphore, t_value, 0);
 }
 
 #elif defined(__linux__)
