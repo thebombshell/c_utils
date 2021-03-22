@@ -32,7 +32,7 @@ unsigned long long int atomic_decrement(p_atomic t_atomic) {
 	return (unsigned long long int)c89atomic_fetch_sub_64(&t_atomic->value, 1);
 }
 
-void atomic_set(op_atomic t_atomic, unsigned long long int t_value) {
+void atomic_set(p_atomic t_atomic, unsigned long long int t_value) {
 	
 	assert(t_atomic);
 	
