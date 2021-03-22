@@ -1,9 +1,6 @@
 
-/** @file		vector_math.h
- *	@brief		The handler of vector, matrix and quaternion math of the smol framework
- *	@details	
- *	@author		[Scott R Howell (Bombshell)](http://scottrhowell.com/) [\@GIT](https://github.com/thebombshell)
- *	@date		14th July 2018
+/**
+ * vector_math.h
  */
  
 #ifndef VECTOR_MATH_H

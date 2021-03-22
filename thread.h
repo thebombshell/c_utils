@@ -1,6 +1,10 @@
 
-#ifndef SMOL_THREAD_H
-#define SMOL_THREAD_H
+/**
+ * thread.h
+ */
+
+#ifndef C_UTIL_THREAD_H
+#define C_UTIL_THREAD_H
 
 #include "c89atomic.h"
 #include "data_structures.h"
