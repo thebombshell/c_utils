@@ -50,8 +50,8 @@ unsigned long long int atomic_get(p_atomic t_atomic) {
 
 DWORD WINAPI thread_proc(LPVOID t_param) {
 	
-	thread* thread = (thread*)t_param;
-	thread->func(thread->argument);
+	thread* t_thread = (thread*)t_param;
+	t_thread->func(t_thread->argument);
 	
 	return 0;
 }
