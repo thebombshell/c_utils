@@ -21,7 +21,7 @@ typedef struct
 int buffer_init(buffer* t_buffer, size_t t_size);
 
 /* resizes a buffer */
-void buffer_resize(buffer* t_buffer, size_t t_size);
+int buffer_resize(buffer* t_buffer, size_t t_size);
 
 /* finalizes a buffer */
 void buffer_final(buffer* t_buffer);

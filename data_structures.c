@@ -3,7 +3,7 @@
  * data_structures.c
  */
 
-#include "data.h"
+#include "data_structures.h"
 #include <assert.h>
 
 int buffer_init(buffer* t_buffer, size_t t_size)
@@ -89,13 +89,18 @@ void* vector_get_index(vector* t_vector, unsigned int t_index)
 	return ((char*)t_vector->buffer.data) + (t_index * t_vector->element_size);
 }
 
-void vector_push(vector* t_vector, const void* t_data)
+int vector_push(vector* t_vector, const void* t_data)
 {
 	assert(t_vector && t_data);
 
-	vector_grow(t_vector, t_vector->element_count + 1);
+	int result = vector_grow(t_vector, t_vector->element_count + 1);
+	if (result)
+	{
+		return result;
+	}
 	memcpy(vector_get_index(t_vector, t_vector->element_count), t_data, t_vector->element_count);
 	--t_vector->element_size;
+	return 1;
 }
 
 void vector_remove(vector* t_vector, unsigned int t_index)
@@ -265,7 +270,6 @@ p_link hash_list_insert(hash_list* t_list, const char* t_key, void* t_data)
 	{
 		t_list->buckets[hash] = link;
 	}
-
 	return link;
 }
 
@@ -280,20 +284,28 @@ void hash_list_remove(hash_list* t_list, p_link t_link)
 		p_hash_pair next_pair = (p_hash_pair)next->data;
 		t_list->buckets[pair->hash] = (next_pair->hash == pair->hash) ? next : &t_list->pairs.end;
 	}
-	
 	hash_pair_free(pair);
-
 	link_list_remove(t_link);
 }
 
-void factory_init(factory* t_factory, size_t t_block_size, size_t t_alloc_capacity)
+int factory_init(factory* t_factory, size_t t_block_size, size_t t_alloc_capacity)
 {
 	assert(t_factory && t_block_size && t_alloc_capacity);
 	
-	link_list_init(&t_factory->alloc);
-	vector_init(&t_factory->free, sizeof(void*));
+	int result = link_list_init(&t_factory->alloc);
+	if (!result)
+	{
+		return result;
+	}
+	result = vector_init(&t_factory->free, sizeof(void*));
+	if (!result)
+	{
+		link_list_final(&t_factory->alloc);
+		return result;
+	}
 	t_factory->block_size = t_block_size;
 	t_factory->alloc_capacity = t_alloc_capacity;
+	return 1;
 }
 
 void factory_final(factory* t_factory)
@@ -324,24 +336,19 @@ void* factory_alloc(factory* t_factory)
 	}
 	output = malloc(t_factory->block_size * t_factory->alloc_capacity);
 	char* chunk = (char*)output;
-	
 	if (!output)
 	{
 		return output;
 	}
-	
-	int result = link_list_insert(&t_factory->alloc.end, output);
-	
-	if (!result)
+	if (!link_list_insert(&t_factory->alloc.end, output))
 	{
 		free(output);
 		return 0;
 	}
-	
 	i = 1;
 	for (; i < t_factory->alloc_capacity; ++i)
 	{
-		result = vector_push(&t_factory->free, chunk + (i * t_factory->block_size));
+		int result = vector_push(&t_factory->free, chunk + (i * t_factory->block_size));
 		
 		if (!result)
 		{
@@ -349,7 +356,6 @@ void* factory_alloc(factory* t_factory)
 			return 0;
 		}
 	}
-	
 	return output;
 }
 

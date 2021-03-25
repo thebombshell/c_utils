@@ -89,7 +89,7 @@ unsigned int thread_join_timeout(p_thread t_thread, unsigned long long int t_ms)
 	return result == 0 ? 1 : 0;
 }
 
-void mutex_init(mutex* t_mutex, unsigned int t_lock_now) {
+int mutex_init(mutex* t_mutex, unsigned int t_lock_now) {
 	
 	assert(t_mutex);
 	
