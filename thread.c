@@ -149,7 +149,7 @@ void semaphore_final(semaphore* t_semaphore) {
 	CloseHandle(t_semaphore->semaphore);
 }
 
-void semahpore_wait(p_semaphore t_semaphore) {
+void semaphore_wait(p_semaphore t_semaphore) {
 	
 	assert(t_semaphore);
 	
@@ -157,7 +157,7 @@ void semahpore_wait(p_semaphore t_semaphore) {
 }
 
 
-unsigned int semahpore_wait_timeout(p_semaphore t_semaphore, unsigned long long int t_ms) {
+unsigned int semaphore_wait_timeout(p_semaphore t_semaphore, unsigned long long int t_ms) {
 	
 	assert(t_semaphore);
 	
@@ -165,7 +165,7 @@ unsigned int semahpore_wait_timeout(p_semaphore t_semaphore, unsigned long long 
 	return result == 0 ? 1 : 0;
 }
 
-unsigned int semahpore_try(p_semaphore t_semaphore) {
+unsigned int semaphore_try(p_semaphore t_semaphore) {
 	
 	assert(t_semaphore);
 	
@@ -300,18 +300,17 @@ void semaphore_final(semaphore* t_semaphore) {
 	
 	assert(t_semaphore);
 	
-	semaphore* semaphore = (semaphore*)t_semaphore;
 	sem_destroy(&t_semaphore->semaphore);
 }
 
-void semahpore_wait(p_semaphore t_semaphore) {
+void semaphore_wait(p_semaphore t_semaphore) {
 	
 	assert(t_semaphore);
 	
 	sem_wait(&t_semaphore->semaphore);
 }
 
-unsigned int semahpore_wait_timeout(p_semaphore t_semaphore, unsigned long long int t_ms) {
+unsigned int semaphore_wait_timeout(p_semaphore t_semaphore, unsigned long long int t_ms) {
 	
 	assert(t_semaphore);
 	
@@ -321,7 +320,7 @@ unsigned int semahpore_wait_timeout(p_semaphore t_semaphore, unsigned long long 
 	return sem_timedwait(&semaphore->semaphore, &timeout) ? 0 : 1;
 }
 
-unsigned int semahpore_try(p_semaphore t_semaphore) {
+unsigned int semaphore_try(p_semaphore t_semaphore) {
 	
 	assert(t_semaphore);
 	
@@ -342,3 +341,141 @@ void semaphore_signal(p_semaphore t_semaphore, unsigned long long int t_value) {
 }
 
 #endif
+
+int queue_init(queue* t_queue) {
+	
+	assert(t_queue);
+	
+	if (!vector_init(&t_queue->push_values, sizeof(void*)))
+	{
+		return 0;
+	}
+	
+	if (!mutex_init(&t_queue->push_values_mutex, 1))
+	{
+		vector_final(&t_queue->push_values);
+		return 0;
+	}
+	
+	if (!vector_init(&t_queue->values, sizeof(void*)))
+	{
+		vector_final(&t_queue->push_values);
+		mutex_final(&t_queue->push_values_mutex);
+		return 0;
+	}
+	
+	if (!mutex_init(&t_queue->values_mutex, 1))
+	{
+		vector_final(&t_queue->push_values);
+		mutex_final(&t_queue->push_values_mutex);
+		vector_final(&t_queue->values);
+		return 0;
+	}
+	
+	if (!semaphore_init(&t_queue->values_semaphore, 0, 65535))
+	{
+		vector_final(&t_queue->push_values);
+		mutex_final(&t_queue->push_values_mutex);
+		vector_final(&t_queue->values);
+		mutex_final(&t_queue->values_mutex);
+		return 0;
+	}
+	
+	mutex_release(&t_queue->push_values_mutex);
+	mutex_release(&t_queue->values_mutex);
+	
+	return 1;
+}
+
+void queue_final(queue* t_queue) {
+	
+	assert(t_queue);
+	
+	mutex_wait(&t_queue->push_values_mutex);
+	mutex_wait(&t_queue->values_mutex);
+	
+	vector_final(&t_queue->push_values);
+	mutex_final(&t_queue->push_values_mutex);
+	vector_final(&t_queue->values);
+	mutex_final(&t_queue->values_mutex);
+	semaphore_final(&t_queue->values_semaphore);
+}
+
+void queue_push(p_queue t_queue, void* t_value) {
+	
+	assert(t_queue);
+	
+	if (mutex_try(&t_queue->values_mutex))
+	{
+		vector_push(&t_queue->values, &t_value);
+		mutex_release(&t_queue->values_mutex);
+	}
+	else
+	{
+		mutex_wait(&t_queue->push_values_mutex);
+		vector_push(&t_queue->push_values, &t_value);
+		mutex_release(&t_queue->push_values_mutex);
+	}
+	semaphore_signal(&t_queue->values_semaphore, 1);
+}
+
+void queue_update(p_queue t_queue) {
+	
+	assert(t_queue);
+	
+	if (mutex_try(&t_queue->values_mutex))
+	{
+		if (mutex_try(&t_queue->push_values_mutex))
+		{
+			unsigned int i = 0;
+			for (; i < t_queue->push_values.element_count; ++i)
+			{
+				vector_push(&t_queue->values, *((void**)vector_get_index(&t_queue->push_values, i)));
+			}
+			t_queue->push_values.element_count = 0;
+			
+			mutex_release(&t_queue->push_values_mutex);
+		}
+		mutex_release(&t_queue->values_mutex);
+	}
+}
+
+unsigned int queue_try(p_queue t_queue, void** t_output) {
+	
+	assert(t_queue);
+	
+	queue_update(t_queue);
+	
+	unsigned int success = 0;
+	
+	/* if semaphore is grabbed first, then the only safe procedure is to wait for mutex, but we want try, so try mutex first. */
+	if (mutex_try(&t_queue->values_mutex))
+	{
+		if (semaphore_try(&t_queue->values_semaphore))
+		{
+			*t_output = *((void**)vector_get_index(&t_queue->values, 0));
+			vector_remove(&t_queue->values, 0);
+			success = 1;
+		}
+		mutex_release(&t_queue->values_mutex);
+	}
+	
+	return success;
+}
+
+void* queue_wait(p_queue t_queue) {
+	
+	assert(t_queue);
+	
+	queue_update(t_queue);
+	
+	/* if wait for mutex first a push might never complete as values can not be updated, causing deadlock, so wait for semaphore first. */
+	
+	semaphore_wait(&t_queue->values_semaphore);
+	mutex_wait(&t_queue->values_mutex);
+	void* output = *((void**)vector_get_index(&t_queue->values, 0));
+	vector_remove(&t_queue->values, 0);
+	mutex_release(&t_queue->values_mutex);
+	
+	return output;
+}

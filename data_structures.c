@@ -5,11 +5,14 @@
 
 #include "data_structures.h"
 #include <assert.h>
+#include <stdio.h>
 
 int buffer_init(buffer* t_buffer, size_t t_size)
 {
-	assert(t_buffer && t_size);
-
+	assert(t_buffer);
+	
+	t_size = t_size ? t_size : 1;
+	
 	t_buffer->data = malloc(t_size);
 	t_buffer->size = t_size;
 	
@@ -18,8 +21,8 @@ int buffer_init(buffer* t_buffer, size_t t_size)
 
 int buffer_resize(buffer* t_buffer, size_t t_size)
 {
-	assert(t_buffer && t_size);
-
+	assert(t_buffer);
+	
 	t_buffer->data = realloc(t_buffer->data, t_size);
 	t_buffer->size = t_size;
 	
@@ -37,7 +40,8 @@ void buffer_final(buffer* t_buffer)
 
 int vector_init(vector* t_vector, size_t t_element_size)
 {
-	assert(t_vector && t_element_size);
+	assert(t_vector);
+	assert(t_element_size);
 	
 	int result = buffer_init(&t_vector->buffer, t_element_size);
 	t_vector->element_size = t_element_size;
@@ -53,7 +57,8 @@ unsigned int vector_find_capacity(vector* t_vector)
 
 int vector_resize(vector* t_vector, unsigned int t_new_element_count)
 {
-	assert(t_vector && t_new_element_count);
+	assert(t_vector);
+	assert(t_new_element_count);
 	
 	int result = buffer_resize(&t_vector->buffer, t_new_element_count * t_vector->element_size);
 	
@@ -62,8 +67,9 @@ int vector_resize(vector* t_vector, unsigned int t_new_element_count)
 
 int vector_grow(vector* t_vector, unsigned int t_new_element_count)
 {
-	assert(t_vector && t_new_element_count);
-
+	assert(t_vector);
+	assert(t_new_element_count);
+	
 	int result = 1;
 	if (vector_find_capacity(t_vector) < t_new_element_count)
 	{
@@ -84,36 +90,61 @@ void vector_final(vector* t_vector)
 
 void* vector_get_index(vector* t_vector, unsigned int t_index)
 {
-	assert(t_vector && t_index && vector_find_capacity(t_vector) > t_index);
+	assert(t_vector);
+	assert(vector_find_capacity(t_vector) > t_index);
 
 	return ((char*)t_vector->buffer.data) + (t_index * t_vector->element_size);
 }
 
+int vector_find(vector* t_vector, void* t_ptr)
+{
+	assert(t_vector);
+	
+	if (t_ptr < t_vector->buffer.data)
+	{
+		return -1;
+	}
+	int offset = (int)(((char*)t_ptr) - ((char*)t_vector->buffer.data));
+	if (offset >= t_vector->buffer.size)
+	{
+		return -1;
+	}
+	return offset / t_vector->element_size;
+}
+
 int vector_push(vector* t_vector, const void* t_data)
 {
-	assert(t_vector && t_data);
-
+	assert(t_vector);
+	
 	int result = vector_grow(t_vector, t_vector->element_count + 1);
-	if (result)
+	if (!result)
 	{
 		return result;
 	}
-	memcpy(vector_get_index(t_vector, t_vector->element_count), t_data, t_vector->element_count);
-	--t_vector->element_size;
+	if (t_data)
+	{
+		memcpy(vector_get_index(t_vector, t_vector->element_count), t_data, t_vector->element_size);
+	}
+	else
+	{
+		memset(vector_get_index(t_vector, t_vector->element_count), 0, t_vector->element_size);
+	}
+	++t_vector->element_count;
 	return 1;
 }
 
 void vector_remove(vector* t_vector, unsigned int t_index)
 {
-	assert(t_vector && vector_find_capacity(t_vector) > t_index);
+	assert(t_vector);
+	assert(vector_find_capacity(t_vector) > t_index);
 
-	--t_vector->element_count;
 	if (t_index != t_vector->element_count - 1)
 	{
 		char* dest = (char*)vector_get_index(t_vector, t_index);
 		char* source = dest + t_vector->element_size;
 		memmove(dest, source, (t_vector->element_count - t_index) * t_vector->element_size);
 	}
+	--t_vector->element_count;
 }
 
 int link_list_init(link_list* t_list)

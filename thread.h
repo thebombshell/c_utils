@@ -109,21 +109,34 @@ int semaphore_init(semaphore* t_semaphore, unsigned long long int t_value, unsig
 
 void semaphore_final(semaphore* t_semaphore);
 
-void semahpore_wait(p_semaphore t_semaphore);
+void semaphore_wait(p_semaphore t_semaphore);
 
-unsigned int semahpore_wait_timeout(p_semaphore t_semaphore, unsigned long long int t_ms);
+unsigned int semaphore_wait_timeout(p_semaphore t_semaphore, unsigned long long int t_ms);
 
-unsigned int semahpore_try(p_semaphore t_semaphore);
+unsigned int semaphore_try(p_semaphore t_semaphore);
 
 void semaphore_signal(p_semaphore t_semaphore, unsigned long long int t_value);
 
 typedef struct {
 	
-	vector vector;
-	semaphore semahpore;
+	vector push_values;
+	mutex push_values_mutex;
+	vector values;
+	mutex values_mutex;
+	semaphore values_semaphore;
 	
 } queue, *p_queue;
 
-int queue_init(queue* t_queue, unsigned long long int t_);
+int queue_init(queue* t_queue);
+
+void queue_final(queue* t_queue);
+
+void queue_push(p_queue t_queue, void* t_value);
+
+void queue_update(p_queue t_queue);
+
+unsigned int queue_try(p_queue t_queue, void** t_output);
+
+void* queue_wait(p_queue t_queue);
 
 #endif

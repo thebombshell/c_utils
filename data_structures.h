@@ -51,6 +51,9 @@ void vector_final(vector* t_vector);
 /* gets the pointer of an index in a vector */
 void* vector_get_index(vector* t_vector, unsigned int t_index);
 
+/* finds the index of a given pointer */
+int vector_find(vector* t_vector, void* t_ptr);
+
 /* pushes an entry into a vector */
 int vector_push(vector* t_vector, const void* t_data);
 
