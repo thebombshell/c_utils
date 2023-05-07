@@ -71,9 +71,10 @@ int vector_grow(vector* t_vector, unsigned int t_new_element_count)
 	assert(t_new_element_count);
 	
 	int result = 1;
-	if (vector_find_capacity(t_vector) < t_new_element_count)
+	unsigned int capacity = vector_find_capacity(t_vector);
+	if (capacity < t_new_element_count)
 	{
-		result = vector_resize(t_vector, t_new_element_count);
+		result = vector_resize(t_vector, capacity * 2);
 	}
 	
 	return result;
