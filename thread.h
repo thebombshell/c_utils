@@ -3,8 +3,8 @@
  * thread.h
  */
 
-#ifndef C_UTIL_THREAD_H
-#define C_UTIL_THREAD_H
+#ifndef C_UTILS_THREAD_H
+#define C_UTILS_THREAD_H
 
 #include "c89atomic.h"
 #include "data_structures.h"
